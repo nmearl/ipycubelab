@@ -2,13 +2,21 @@
 // Distributed under the terms of the Modified BSD License.
 
 import {
-  DOMWidgetModel, DOMWidgetView, ISerializers
+  DOMWidgetModel, DOMWidgetView, ISerializers, WidgetModel
 } from '@jupyter-widgets/base';
 
 import {
   MODULE_NAME, MODULE_VERSION
 } from './version';
 
+// import {
+//   Message
+// } from '@phosphor/messaging';
+
+import Vue from "vue";
+import App from "./App.vue";
+// import HelloComponent from "./components/Hello.vue";
+// import HelloDecoratorComponent from "./components/HelloDecorator.vue";
 
 export
 class ExampleModel extends DOMWidgetModel {
@@ -40,12 +48,55 @@ class ExampleModel extends DOMWidgetModel {
 
 export
 class ExampleView extends DOMWidgetView {
-  render() {
-    this.value_changed();
-    this.model.on('change:value', this.value_changed, this);
+  // protected vapp: HTMLDivElement;
+  public email_input: HTMLInputElement;
+  public vue: Vue;
+
+  constructor(options?: Backbone.ViewOptions<WidgetModel> & {
+    options?: any;
+  }) {
+    super(options);
+    console.log("CONSTRUCTED");
+    // this.vapp = document.createElement('div');
+    // this.vapp.setAttribute("id", "app");
+
+    this.email_input = document.createElement('input');
+    this.email_input.type = 'email';
+    this.email_input.value = this.model.get('value');
+
+    this.el.appendChild(this.email_input);
+    // this.el.appendChild(this.vapp);
+
+
+    this.vue = new Vue({
+      render: (h) => h(App),
+    }).$mount('#app');
+
+    console.log("Div appended.")
   }
 
+  render() {
+
+    this.value_changed();
+    this.model.on('change:value', this.value_changed, this);
+
+    this.email_input.onchange = this.input_changed.bind(this);
+  }
+
+  // processPhosphorMessage(msg: Message) {
+  //   super.processPhosphorMessage(msg);
+
+  //   switch (msg.type) {
+  //     case 'after-attach':
+  //   }
+  // }
+
   value_changed() {
-    this.el.textContent = this.model.get('value');
+    this.email_input.value = this.model.get('value');
+  }
+
+  input_changed() {
+    this.model.set('value', this.email_input.value);
+    this.model.save_changes();
   }
 }
